@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>prometheus-perc-exporter</id>
+    <version>1.0.0</version>
+    <title>Prometheus PERC Exporter</title>
+    <iconUrl>https://pbs.twimg.com/profile_images/588945677599780865/mrhc1gSh.png</iconUrl> 
+    <authors>Client Technology Solutions and Consulting</authors>
+    <description>Prometheus exporter for Dell PERC RAID controllers on Windows. Monitors controller, BBU, virtual disk, and physical disk status via perccli64. Runs as a Windows Service.</description>
+    <summary>Prometheus exporter for Dell PERC RAID controller monitoring on Windows</summary>
+    <tags>prometheus perc raid dell exporter monitoring windows-service</tags>
+    <dependencies>
+      <dependency id="perccli" />
+    </dependencies>
+  </metadata>
+</package>
