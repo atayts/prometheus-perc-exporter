@@ -17,3 +17,5 @@ Flags:
       --scrape.interval=900  How often to scrape PERC data in seconds.
       --[no-]version         Show application version.
 ```
+
+[Download](https://github.com/atayts/prometheus-perc-exporter/releases/latest/download/perc_win_exporter.exe) the latest release.
