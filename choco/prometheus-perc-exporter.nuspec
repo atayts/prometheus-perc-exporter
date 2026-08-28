@@ -9,9 +9,10 @@
     <description>Prometheus exporter for Dell PERC RAID controllers on Windows. Monitors controller, BBU, virtual disk, and physical disk status via perccli64. Runs as a Windows Service.</description>
     <summary>Prometheus exporter for Dell PERC RAID controller monitoring on Windows</summary>
     <tags>prometheus perc raid dell exporter monitoring windows-service</tags>
-    <dependencies>
-      <dependency id="perccli" />
-    </dependencies>
+    <!-- No RAID CLI dependency: the exporter works with either perccli or
+         storcli, and Puppet (alloy::exporter::perc) installs whichever one
+         matches the host via its raid_cli parameter. Hard-depending on perccli
+         would force it onto storcli-only hosts. -->
   </metadata>
   <files>
     <file src="tools\**" target="tools" />
