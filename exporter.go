@@ -16,7 +16,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-const version = "1.0.0"
+const version = "1.1.0"
 
 var (
 	controllerOKStatuses = []string{"optimal"}
