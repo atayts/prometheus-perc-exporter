@@ -1,0 +1,24 @@
+# Configuration for the Prometheus PERC exporter.
+#
+# The service reads this file at startup from the directory holding
+# perc_win_exporter.exe. To change any option, edit this file and run:
+#
+#     Restart-Service perc_win_exporter
+#
+# Every key is optional — an omitted key keeps its built-in default, shown
+# below. Startup errors are written to perc_win_exporter.log next to the
+# executable.
+
+# Path to the perccli64 executable.
+perccli_path: 'C:\ProgramData\chocolatey\bin\perccli64.exe'
+
+# Address to listen on for metrics.
+web_listen_address: ':9102'
+
+# How often to scrape PERC data, in seconds.
+scrape_interval: 900
+
+# Where to write the log. Leave empty to use perc_win_exporter.log next to the
+# executable when running as a service, or stderr when run from a console.
+# The file is rotated to <name>.old once it exceeds 10 MB.
+log_file: ''

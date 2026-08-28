@@ -417,30 +417,24 @@ func collectMetrics(perccliPath string) {
 	percScrapeErrors.Set(0)
 }
 
-type exporterParams struct {
-	PerccliPath    string
-	ListenAddr     string
-	ScrapeInterval int
-}
-
-func runExporter(ctx context.Context, p exporterParams) {
+func runExporter(ctx context.Context, cfg *Config) {
 	log.Printf("Config: listen=%s scrape_interval=%ds perccli=%s",
-		p.ListenAddr, p.ScrapeInterval, p.PerccliPath)
+		cfg.ListenAddress, cfg.ScrapeInterval, cfg.PerccliPath)
 
 	log.Println("Performing initial PERC data collection...")
-	collectMetrics(p.PerccliPath)
+	collectMetrics(cfg.PerccliPath)
 
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		ticker := time.NewTicker(time.Duration(p.ScrapeInterval) * time.Second)
+		ticker := time.NewTicker(time.Duration(cfg.ScrapeInterval) * time.Second)
 		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:
-				collectMetrics(p.PerccliPath)
+				collectMetrics(cfg.PerccliPath)
 			case <-ctx.Done():
 				log.Println("Shutting down collection loop")
 				return
@@ -454,7 +448,7 @@ func runExporter(ctx context.Context, p exporterParams) {
 		fmt.Fprintf(w, `<html><body><h1>PERC Windows Exporter</h1><p><a href="/metrics">Metrics</a></p></body></html>`)
 	})
 
-	srv := &http.Server{Addr: p.ListenAddr, Handler: mux}
+	srv := &http.Server{Addr: cfg.ListenAddress, Handler: mux}
 
 	go func() {
 		<-ctx.Done()
@@ -464,7 +458,7 @@ func runExporter(ctx context.Context, p exporterParams) {
 		srv.Shutdown(shutdownCtx)
 	}()
 
-	log.Printf("Listening on %s", p.ListenAddr)
+	log.Printf("Listening on %s", cfg.ListenAddress)
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		log.Fatalf("HTTP server error: %v", err)
 	}

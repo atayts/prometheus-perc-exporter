@@ -11,37 +11,67 @@ import (
 )
 
 func main() {
-	perccliPath := kingpin.Flag("perccli.path", "Path to perccli64 executable.").
-		Default(`C:\ProgramData\chocolatey\bin\perccli64.exe`).String()
-	listenAddr := kingpin.Flag("web.listen-address", "Address to listen on for metrics.").
-		Default(":9102").String()
-	scrapeInterval := kingpin.Flag("scrape.interval", "How often to scrape PERC data in seconds.").
-		Default("900").Int()
+	configFile := kingpin.Flag("config.file", "Path to the configuration file (default: config.yml next to the executable).").
+		Default("").String()
+
+	// The flags below only override what the configuration file says; they
+	// exist for ad-hoc console runs. The service is configured by the file.
+	perccliPath := kingpin.Flag("perccli.path", "Override perccli_path from the configuration file.").
+		Default("").String()
+	listenAddr := kingpin.Flag("web.listen-address", "Override web_listen_address from the configuration file.").
+		Default("").String()
+	scrapeInterval := kingpin.Flag("scrape.interval", "Override scrape_interval from the configuration file.").
+		Default("0").Int()
 
 	kingpin.HelpFlag.Short('h')
 	kingpin.Version(version)
 	kingpin.Parse()
-
-	log.Printf("Starting PERC Windows Exporter v%s", version)
-
-	p := exporterParams{
-		PerccliPath:    *perccliPath,
-		ListenAddr:     *listenAddr,
-		ScrapeInterval: *scrapeInterval,
-	}
 
 	isService, err := svc.IsWindowsService()
 	if err != nil {
 		log.Fatalf("Failed to detect service mode: %v", err)
 	}
 
+	configPath := configFilePath(*configFile)
+
+	// Start logging to a file before anything can fail: a service has no
+	// console, so configuration errors would otherwise vanish.
+	if isService {
+		setupLogging(defaultLogPath())
+	}
+
+	log.Printf("Starting PERC Windows Exporter v%s", version)
+
+	cfg, err := loadConfig(configPath, *configFile != "")
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	if *perccliPath != "" {
+		cfg.PerccliPath = *perccliPath
+	}
+	if *listenAddr != "" {
+		cfg.ListenAddress = *listenAddr
+	}
+	if *scrapeInterval != 0 {
+		cfg.ScrapeInterval = *scrapeInterval
+	}
+
+	if err := cfg.validate(); err != nil {
+		log.Fatalf("Invalid configuration (%s): %v", configPath, err)
+	}
+
+	if cfg.LogFile != "" {
+		setupLogging(cfg.LogFile)
+	}
+
 	if isService {
 		log.Println("Running as Windows Service")
-		runAsService(p)
+		runAsService(cfg)
 	} else {
 		log.Println("Running in console mode (Ctrl+C to stop)")
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 		defer stop()
-		runExporter(ctx, p)
+		runExporter(ctx, cfg)
 	}
 }
