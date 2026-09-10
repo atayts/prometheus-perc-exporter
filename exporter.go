@@ -16,10 +16,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-const version = "1.1.1"
+const version = "1.2.1"
 
 var (
-	controllerOKStatuses = []string{"optimal"}
+	// perccli reports a healthy controller as "Optimal"; storcli reports "OK".
+	controllerOKStatuses = []string{"optimal", "ok"}
 	vdOKStates           = []string{"optl"}
 	pdOKStates           = []string{"onln", "ugood", "dhs", "ghs"}
 )
@@ -227,8 +228,11 @@ func getInfo(perccliPath string) (*percData, error) {
 			Status: strings.ToLower(jsonStr(status["Controller Status"])),
 		})
 
-		// Battery backup unit.
-		if jsonStr(hwCfg["BBU"]) != "Absent" {
+		// Battery backup unit. storcli omits the BBU key from HwCfg entirely
+		// on controllers that have no battery, and perccli reports it as
+		// "Absent". Only query the BBU when the key is present and says the
+		// unit is there - a missing key must not be mistaken for a BBU.
+		if bbu, ok := hwCfg["BBU"]; ok && jsonStr(bbu) != "Absent" {
 			bbuJSON, err := runPerccliJSON(perccliPath, "/c"+ctrlIDStr+"/bbu", "show", "status")
 			if err != nil {
 				return nil, fmt.Errorf("reading BBU info: %w", err)

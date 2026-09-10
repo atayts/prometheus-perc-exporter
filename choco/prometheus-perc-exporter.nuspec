@@ -2,17 +2,23 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>prometheus-perc-exporter</id>
-    <version>1.1.1</version>
+    <version>1.2.1</version>
     <title>Prometheus PERC Exporter</title>
     <iconUrl>https://pbs.twimg.com/profile_images/588945677599780865/mrhc1gSh.png</iconUrl> 
     <authors>Client Technology Solutions and Consulting</authors>
     <description>Prometheus exporter for Dell PERC RAID controllers on Windows. Monitors controller, BBU, virtual disk, and physical disk status via perccli64. Runs as a Windows Service.</description>
     <summary>Prometheus exporter for Dell PERC RAID controller monitoring on Windows</summary>
     <tags>prometheus perc raid dell exporter monitoring windows-service</tags>
-    <!-- No RAID CLI dependency: the exporter works with either perccli or
-         storcli, and Puppet (alloy::exporter::perc) installs whichever one
-         matches the host via its raid_cli parameter. Hard-depending on perccli
-         would force it onto storcli-only hosts. -->
+    <!-- megaraid ships both perccli64 and storcli64 and shims whichever one
+         matches the host hardware, so this dependency is safe on Dell and
+         non-Dell alike. Do not depend on perccli or storcli directly - either
+         would be wrong on half the fleet. Note that the CLI is shimmed under
+         its native name, so config.yml's perccli_path must point at storcli64
+         on non-Dell hosts; Puppet (alloy::exporter::perc) sets that via its
+         raid_cli parameter. -->
+    <dependencies>
+      <dependency id="megaraid" />
+    </dependencies>
   </metadata>
   <files>
     <file src="tools\**" target="tools" />
